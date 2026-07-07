@@ -53,19 +53,20 @@ int find(void* data, int value) {
             return arr->data[i];
         }
 
-        if (value < arr->data[i]) {
-            // printf("smaller: value = %d, arr[m]=%d\n", value, arr->data[i]);
-            i = i * 2;
-        }
-        else {
-            // printf("bigger: value = %d, arr[m]=%d\n", value, arr->data[i]);
-            i = i * 2 + 1;
-        }
+        i = i * 2 + (value >= arr->data[i]);
+        // if (value < arr->data[i]) {
+        //     // printf("smaller: value = %d, arr[m]=%d\n", value, arr->data[i]);
+        //     i = i * 2;
+        // }
+        // else {
+        //     // printf("bigger: value = %d, arr[m]=%d\n", value, arr->data[i]);
+        //     i = i * 2 + 1;
+        // }
     }
 
     // printf("i=%zu, len=%zu, arr[i]=%d\n", i, arr->len, arr->data[i]);
 
-    return 0;
+    return -1;
 }
 
 // free the query data structure

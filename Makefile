@@ -8,12 +8,11 @@ SRC=main.c \
 
 OBJ = ${SRC:.c=.o}
 
-CFLAGS=-O2 -g
+CFLAGS=-O0 -g
 LDFLAGS=-lm
 LDLIBS=
 
 all: linear binary pbtree stree
-
 
 linear: main.o linear.o
 	${CC} -o bench.exe $^ ${CLFAGS} ${LDFLAGS} ${LDLIBS}
