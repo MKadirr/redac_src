@@ -53,10 +53,10 @@ int find(void* data, int value) {
             return arr->data[i];
         }
 
-        i = i * 2 + (value >= arr->data[i]);
+        i = i << 1 + (value >= arr->data[i]);
         // if (value < arr->data[i]) {
         //     // printf("smaller: value = %d, arr[m]=%d\n", value, arr->data[i]);
-        //     i = i * 2;
+        //     i = i << 1;
         // }
         // else {
         //     // printf("bigger: value = %d, arr[m]=%d\n", value, arr->data[i]);
