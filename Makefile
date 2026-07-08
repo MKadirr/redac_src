@@ -8,9 +8,9 @@ SRC=main.c \
 
 OBJ = ${SRC:.c=.o}
 
-CFLAGS=-O0 -g
+CFLAGS=-O0 -g -fsanitize=address -mbmi
 LDFLAGS=-lm
-LDLIBS=
+LDLIBS=-fsanitize=address
 
 all: linear binary pbtree stree
 
@@ -31,6 +31,10 @@ eytzinger_prefetch: main.o eytzinger_prefetch.o
 
 stree: main.o stree.o
 	${CC} -o bench.exe $^ ${CLFAGS} ${LDFLAGS} ${LDLIBS}
+
+stree_plus: main.o stree_plus.o
+	${CC} -o bench.exe $^ ${CLFAGS} ${LDFLAGS} ${LDLIBS}
+
 
 
 clean:

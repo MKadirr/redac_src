@@ -39,14 +39,22 @@ int find(void* data, int value) {
     ssize_t b = arr->len - 1;
     ssize_t m;
 
+    // size_t count = 0;
+
     while (a <= b) {
+        // count++;
+
         m = (a + b) / 2;
+        int val = arr->data[m];
 
         // printf("a=%zu, m=%zu, b=%zu, value=%d\n", a, m, b, arr->data[m]);
 
-        if (arr->data[m] == value) return arr->data[m];
+        if (val == value) {
+            // printf("count=%zu\n", count);
+            return val;
+        }
 
-        if (arr->data[m] > value) {
+        if (val > value) {
             b = m - 1;
         }
         else {
@@ -54,9 +62,11 @@ int find(void* data, int value) {
         }
     }
 
+    // printf("count=%zu\n", count);
+
     // printf("a=%zu, b=%zu, arr[a]=%d, arr[b]=%d\n", a, b, arr->data[a], arr->data[b]);
 
-    return 0;
+    return -1;
 }
 
 // free the query data structure

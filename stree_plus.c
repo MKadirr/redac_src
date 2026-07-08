@@ -1,3 +1,5 @@
+#pragma GCC target("avx2")
+
 #include "find.h"
 
 #include <stddef.h>
@@ -6,7 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
-
+#include <immintrin.h>
 
 #define B 16
 #define CACHE_LINE_SIZE 64
@@ -26,14 +28,28 @@ struct Data {
     size_t len;
     size_t nblock;
     int* data;
+    size_t H;
 };
 
 void pres_find() {
-    printf("stree");
+    printf("stree_plus");
 }
 
 size_t go(size_t k, size_t i) {
     return k * (B + 1) + i + 1;
+}
+
+int height(int n) {
+    // grow the tree until its size exceeds n elements
+    int s = 0, // total size so far
+        l = B, // size of the next layer
+        h = 0; // height so far
+    while (s + l - B < n) {
+        s += l;
+        l *= (B + 1);
+        h++;
+    }
+    return h;
 }
 
 size_t rec_build(int (*dst)[B], int* src, size_t t, size_t n, size_t nblock,  size_t k) {
@@ -61,6 +77,7 @@ void* init_find(int* arr, size_t len) {
 
     data->len = len;
     data->nblock = nblock;
+    data->H = height(len);
 
     rec_build((int (*)[B])data->data, arr, 0, len, nblock, 0);
 
@@ -75,6 +92,48 @@ void* init_find(int* arr, size_t len) {
     return data;
 }
 
+typedef __m256i reg;
+
+int cmp_simd(reg x_vec, int* y_ptr) {
+    reg y_vec = _mm256_load_si256((reg*) y_ptr);
+    reg mask = _mm256_cmpgt_epi32(x_vec, y_vec);
+    return _mm256_movemask_ps((__m256) mask);
+}
+
+unsigned rank(reg x, int* y) {
+    reg a = _mm256_load_si256((reg*) y);
+    reg b = _mm256_load_si256((reg*) (y + 8));
+
+    reg ca = _mm256_cmpgt_epi32(a, x);
+    reg cb = _mm256_cmpgt_epi32(b, x);
+
+    reg c = _mm256_packs_epi32(ca, cb);
+    int mask = _mm256_movemask_epi8(c);
+
+    // we need to divide the result by two because we call movemask_epi8 on 16-bit masks:
+    return __tzcnt_u32(mask) >> 1;
+}
+
+void permute(int *node) {
+    const reg perm = _mm256_setr_epi32(4, 5, 6, 7, 0, 1, 2, 3);
+    reg* middle = (reg*) (node + 4);
+    reg x = _mm256_loadu_si256(middle);
+    x = _mm256_permutevar8x32_epi32(x, perm);
+    _mm256_storeu_si256(middle, x);
+}
+
+const int translate[17] = {
+    0, 1, 2, 3,
+    8, 9, 10, 11,
+    4, 5, 6, 7,
+    12, 13, 14, 15,
+    0
+};
+
+void update(int* res, int* node, unsigned i) {
+    int val = node[translate[i]];
+    *res = (i < B ? val : *res);
+}
 
 // use the previously defined data to search if the given value is present
 int find(void* data, int value) {
@@ -83,32 +142,29 @@ int find(void* data, int value) {
 
     int (*btree)[B] = (int (*)[B])arr->data;
 
+    size_t nblocks = arr->nblock;
+    size_t H = arr->H;
+
     size_t k = 0;
-    size_t i = 0;
+    // size_t i = 0;
 
-    while (k < arr->nblock) {
+    int res = -1;
 
-        // printf("block %zu: ", k);
-        // for (int i = 0; i < B; i++) {
-        //     printf("%d ,", btree[k][i]);
-        // }
-        // printf("\n");
+    reg x = _mm256_set1_epi32(value - 1);
 
-        size_t i = 0;
-        for (size_t ii = 0; ii < B; ii++) {
-            i += btree[k][ii] < value;
-        }
-
-        if (i < B && btree[k][i] == value) {
-            // printf("found: %d\n", btree[k][i]);
-            return btree[k][i];
-        }
-
-        // printf("k=%zu, i=%zu, arr[k][i]=%d, arr[k][i+1]=%d\n", k, i, btree[k][i], btree[k][1 + i]);
+    for (int h = 0; h < H - 1; h++) {
+        unsigned i = rank(x, btree[k]);
+        update(&res, btree[k], i);
         k = go(k, i);
     }
+    // the last branch:
+    if (k < nblocks) {
+        unsigned i = rank(x, btree[k]);
+        update(&res, btree[k], i);
+    }
 
-    return -1;
+
+    return res;
 }
 
 // free the query data structure

@@ -1,6 +1,6 @@
 #! /bin/sh
 
-benchs="binary eytzinger eytzinger_prefetch stree linear"
+benchs="binary eytzinger eytzinger_prefetch stree stree_plus"
 
 make binary && ./bench.exe 1
 
