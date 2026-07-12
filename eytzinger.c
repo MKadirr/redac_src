@@ -49,40 +49,20 @@ int find(void* data, int value) {
     size_t i = 1;
     size_t len = arr->len;
 
-    // size_t count = 0;
-
     while (i <= len) {
         int val = arr->data[i];
-        // count++;
 
         if (val == value) {
-            // printf("count=%zu\n", count);
             return val;
         }
 
-        // i = (i << 1) + (value >= val);
         if (value < val) {
-            // printf("smaller: value = %d, arr[m]=%d\n", value, arr->data[i]);
             i = i * 2;
         }
         else {
-            // printf("bigger: value = %d, arr[m]=%d\n", value, arr->data[i]);
             i = i * 2 + 1;
         }
-
-        // if (value < arr->data[i]) {
-        //     // printf("smaller: value = %d, arr[m]=%d\n", value, arr->data[i]);
-        //     i = i << 1;
-        // }
-        // else {
-        //     // printf("bigger: value = %d, arr[m]=%d\n", value, arr->data[i]);
-        //     i = i * 2 + 1;
-        // }
     }
-
-    // printf("count=%zu\n", count);
-
-    // printf("i=%zu, len=%zu, arr[i]=%d\n", i, arr->len, arr->data[i]);
 
     return -1;
 }

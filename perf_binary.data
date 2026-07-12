@@ -1,0 +1,12 @@
+# started on Fri Jul 10 21:22:18 2026
+
+
+ Performance counter stats for './bench.exe' (5 runs):
+
+     7 045 093 244      cycles:u                                                                ( +-  0,75% )
+        45 302 030      cache-misses:u                                                          ( +-  1,91% )
+       133 458 181      L1-dcache-load-misses:u                                                 ( +-  0,11% )
+     7 698 713 569      instructions:u                                                          ( +-  0,00% )
+
+       6,567192969 +- 0,037662607 seconds time elapsed  ( +-  0,57% )
+

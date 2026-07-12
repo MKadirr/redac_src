@@ -53,16 +53,24 @@ void* init_find(int* arr, size_t len) {
     return data;
 }
 
+#define L 8
 
 // use the previously defined data to search if the given value is present
 int find(void* data, int value) {
-    struct Data* arr = (struct Data*)data;
+    struct Data* data_struct = (struct Data*)data;
 
     size_t i = 1;
-    size_t len = arr->len;
+    size_t len = data_struct->len;
+    int* arr = data_struct->data;
+
+    size_t tmp = 1;
+    while (tmp < L && (1 << tmp) < len) {
+        __builtin_prefetch(arr + (1 << tmp));
+        tmp++;
+    }
 
     while (i <= len) {
-        int val = arr->data[i];
+        int val = arr[i];
 
         if (val == value) {
             return val;
