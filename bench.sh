@@ -1,10 +1,10 @@
 #! /bin/sh
 
-benchs="binary eytzinger eytzinger_prefetch stree stree_plus"
+benchs="binary eytzinger eytzinger_prefetch stree"
 
 make binary && ./bench.exe 1
 
 for t in $benchs; do
-    make $t > /dev/null
-    taskset -c 12 ./bench.exe
+    make clean $t > /dev/null
+    taskset -c 3 numactl --membind=0 ./bench.exe
 done

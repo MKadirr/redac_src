@@ -26,6 +26,8 @@ int* random_data(size_t len) {
         // res[i] = random() % 0xffffffff;
     }
 
+	// for (int i = 0; i < len; i++) rse[i] = i * 1000 + 7;
+
 	// qsort(res, len, sizeof(int), cmp);
 
     return res;

@@ -11,8 +11,8 @@
 #include "find.h"
 
 // number of time the query is called
-#define NB_QUERY_WARMUP 100000L
-#define NB_QUERY 100000L
+#define NB_QUERY_WARMUP 10L
+#define NB_QUERY 10L
 
 #ifdef PERF_ENABLE
 
@@ -129,11 +129,9 @@ size_t arr_sizes[] = {
 	// 125229568, 134217728, 143850999, 154175683, 165241405, 177101353, 189812531,
 	// 203436033, 218037342, 233686637, 250459136, 268435456, 287701998, 308351366,
 	// 330482811, 354202707, 379625062, 406872067, 436074684, 467373274, 500918273,
-	// 536870912, 575403996,
-	616702733,
-	660965623,
-	708405415,
-	// 759250124, 813744135, 872149369, 934746549, 1001836546,
+	536870912, 575403996,616702733, 660965623, 708405415, 759250124, 
+	813744135, 
+	// 872149369, 934746549, 1001836546,
 	// 1073741824, 1150807992, 1233405466, 1321931247, 1416810830, 1518500249, 1627488270,
 	// 1744298739, 1869493099, 2003673092
 };
@@ -187,7 +185,7 @@ int main(int argc, char**argv) {
             int found = find(query_struct, value);
 
 			if (found != value) {
-				printf("fuck c'est pas la bonne valeur: expected: %d, found: %d\n", value, found);
+				// printf("\rfuck c'est pas la bonne valeur: expected: %d, found: %d", value, found);
 			}
         }
 #endif
@@ -208,7 +206,7 @@ int main(int argc, char**argv) {
 			clock_gettime(CLOCK_REALTIME, &end);
 
 			if (found != value) {
-				printf("fuck c'est pas la bonne valeur: expected: %d, found: %d\n", value, found);
+				// printf("\rfuck c'est pas la bonne valeur: expected: %d, found: %d", value, found);
 			}
 			// printf("end\n");
             

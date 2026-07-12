@@ -31,6 +31,36 @@ struct Data {
     size_t H;
 };
 
+typedef __m256i reg;
+
+int cmp_simd(reg x_vec, int* y_ptr) {
+    reg y_vec = _mm256_load_si256((reg*) y_ptr);
+    reg mask = _mm256_cmpgt_epi32(x_vec, y_vec);
+    return _mm256_movemask_ps((__m256) mask);
+}
+
+unsigned rank(reg x, int* y) {
+    reg a = _mm256_load_si256((reg*) y);
+    reg b = _mm256_load_si256((reg*) (y + 8));
+
+    reg ca = _mm256_cmpgt_epi32(a, x);
+    reg cb = _mm256_cmpgt_epi32(b, x);
+
+    reg c = _mm256_packs_epi32(ca, cb);
+    int mask = _mm256_movemask_epi8(c);
+
+    // we need to divide the result by two because we call movemask_epi8 on 16-bit masks:
+    return __tzcnt_u32(mask) >> 1;
+}
+
+void permute(int *node) {
+    const reg perm = _mm256_setr_epi32(4, 5, 6, 7, 0, 1, 2, 3);
+    reg* middle = (reg*) (node + 4);
+    reg x = _mm256_loadu_si256(middle);
+    x = _mm256_permutevar8x32_epi32(x, perm);
+    _mm256_storeu_si256(middle, x);
+}
+
 void pres_find() {
     printf("stree_plus");
 }
@@ -81,45 +111,15 @@ void* init_find(int* arr, size_t len) {
 
     rec_build((int (*)[B])data->data, arr, 0, len, nblock, 0);
 
-    // int (*tmp)[B] = (int (*)[B])data->data;
-    // for (int k = 0; k < nblock; k++) {
-    //     for (int i = 0; i < B; i++) {
-    //         printf(", %d", tmp[k][i]);
-    //     }
-    //     printf("\n");
-    // }
+    // printf("nblock=%zu, H=%d\n", nblock, height(len));
+
+    // Étape manquante : permuter chaque nœud pour que rank()/translate() soient cohérents
+    int (*btree)[B] = (int (*)[B])data->data;
+    for (size_t k = 0; k < nblock; k++) {
+        permute(btree[k]);
+    }
 
     return data;
-}
-
-typedef __m256i reg;
-
-int cmp_simd(reg x_vec, int* y_ptr) {
-    reg y_vec = _mm256_load_si256((reg*) y_ptr);
-    reg mask = _mm256_cmpgt_epi32(x_vec, y_vec);
-    return _mm256_movemask_ps((__m256) mask);
-}
-
-unsigned rank(reg x, int* y) {
-    reg a = _mm256_load_si256((reg*) y);
-    reg b = _mm256_load_si256((reg*) (y + 8));
-
-    reg ca = _mm256_cmpgt_epi32(a, x);
-    reg cb = _mm256_cmpgt_epi32(b, x);
-
-    reg c = _mm256_packs_epi32(ca, cb);
-    int mask = _mm256_movemask_epi8(c);
-
-    // we need to divide the result by two because we call movemask_epi8 on 16-bit masks:
-    return __tzcnt_u32(mask) >> 1;
-}
-
-void permute(int *node) {
-    const reg perm = _mm256_setr_epi32(4, 5, 6, 7, 0, 1, 2, 3);
-    reg* middle = (reg*) (node + 4);
-    reg x = _mm256_loadu_si256(middle);
-    x = _mm256_permutevar8x32_epi32(x, perm);
-    _mm256_storeu_si256(middle, x);
 }
 
 const int translate[17] = {
@@ -152,17 +152,26 @@ int find(void* data, int value) {
 
     reg x = _mm256_set1_epi32(value - 1);
 
-    for (int h = 0; h < H - 1; h++) {
+    for (int h = 0; h < H; h++) {
         unsigned i = rank(x, btree[k]);
+        // printf("  [h=%d] k=%zu, i=%u, node[translate[i]]=%d, res_avant=%d\n",
+        //        h, k, i, (i < B ? btree[k][translate[i]] : -999), res);
         update(&res, btree[k], i);
+        // printf("  [h=%d] res_apres=%d\n", h, res);
         k = go(k, i);
     }
     // the last branch:
     if (k < nblocks) {
         unsigned i = rank(x, btree[k]);
+        // printf("  [final] k=%zu, i=%u, node[translate[i]]=%d, res_avant=%d\n",
+        //        k, i, (i < B ? btree[k][translate[i]] : -999), res);
         update(&res, btree[k], i);
+        // printf("  [final] res_apres=%d\n", res);
     }
 
+    // if (res != value) {
+    //     fprintf(stderr, "MISMATCH: recherché=%d, trouvé=%d\n", value, res);
+    // }
 
     return res;
 }
