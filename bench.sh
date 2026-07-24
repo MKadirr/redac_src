@@ -1,8 +1,8 @@
 #! /bin/sh
 
-benchs="binary eytzinger eytzinger_prefetch stree"
+benchs="linear"
 
-make binary && ./bench.exe 1
+make binary $t > /dev/null && ./bench.exe 1
 
 for t in $benchs; do
     make clean $t > /dev/null

@@ -20,6 +20,10 @@ EXE=bench.exe
 
 all: linear binary pbtree stree
 
+cache_latency: cache_latency.o
+	${CC} -o latency.exe cache_latency.o ${CFLAGS} ${LDFLAGS} ${LDLIBS}
+
+
 linear: ${MAIN_OBJ} linear.o
 	${CC} -o ${EXE} $^ ${CFLAGS} ${LDFLAGS} ${LDLIBS}
 
